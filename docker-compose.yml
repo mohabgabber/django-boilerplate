@@ -1,0 +1,53 @@
+services:
+  django:
+    container_name: django_container_name
+    build: .
+    depends_on:
+      - pgdb
+    restart: unless-stopped
+    volumes:
+      - ./:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=dfskldmskfsmflkdmfsklfmdkfs
+      - DEBUG=true
+      - SITE_DOMAIN=localhost
+      - SITE_TITLE=EXAMPLE_SITE
+      - EMAIL_SUBJECT_PREFIX=EXAMPLE SITE
+      - SMTP_SERVER=smtp.gmail.com
+      - EMAIL_HOST_USER=lklklklklkl
+      - EMAIL_HOST_PASSWORD=jkjkjkjkjk
+      - DEFAULT_FROM_EMAIL=contact@cyberhotline.net
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_HOST=pgdb
+    networks:
+      - db_net
+    command: bash -c 'while !</dev/tcp/pgdb/5432; do sleep 1; done; python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000'
+
+  # redisdb:
+  #   container_name: redis_container_name
+  #   image: redis:7.4.1-alpine
+  #   restart: unless-stopped
+
+  pgdb:
+    container_name: pgdb_container_name
+    image: postgres:16.4-alpine3.20
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - db_net
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+networks:
+  db_net:
+    driver: bridge
+
+volumes:
+  pgdata:
